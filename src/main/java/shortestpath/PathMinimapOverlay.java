@@ -76,6 +76,9 @@ public class PathMinimapOverlay extends Overlay {
             }
 
             renderMinimapRect(client, graphics, posOnMinimap, color);
+            // Only draw at the first valid instance point to prevent duplicate minimap dots
+            // when POH room templates repeat across multiple instance chunks
+            break;
         }
     }
 

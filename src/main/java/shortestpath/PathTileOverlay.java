@@ -150,7 +150,13 @@ public class PathTileOverlay extends Overlay {
             int counter = 0;
             if (TileStyle.LINES.equals(plugin.pathStyle)) {
                 for (int i = 1; i < path.size(); i++) {
-                    drawLine(graphics, path.get(i - 1), path.get(i), color, 1 + counter++);
+                    // Skip drawing lines into POH tiles (no collision data, lines render at wrong positions)
+                    int pathX = WorldPointUtil.unpackWorldX(path.get(i));
+                    int pathY = WorldPointUtil.unpackWorldY(path.get(i));
+                    if (!ShortestPathPlugin.isInsidePoh(pathX, pathY)) {
+                        drawLine(graphics, path.get(i - 1), path.get(i), color, 1 + counter);
+                    }
+                    counter++;
                     drawTransportInfo(graphics, path.get(i - 1), path.get(i), path, i - 1);
                 }
             } else {
@@ -390,6 +396,9 @@ public class PathTileOverlay extends Overlay {
                 graphics.drawString(text, x, y);
 
                 vertical_offset += (int) height + TRANSPORT_LABEL_GAP;
+                // Only draw at the first valid instance point to prevent duplicate labels
+                // when POH room templates repeat across multiple instance chunks
+                break;
             }
         }
     }
