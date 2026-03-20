@@ -149,25 +149,17 @@ public class PathTileOverlay extends Overlay {
             PrimitiveIntList path = plugin.getPathfinder().getPath();
             int counter = 0;
 
-            // When the player is physically inside the POH instance, toLocalInstance maps
-            // overworld path coordinates into the scene wherever they coincide with POH room
+            // When the player is in an instanced area (e.g. POH), toLocalInstance maps
+            // overworld path coordinates into the scene wherever they coincide with instance
             // template regions, producing scattered tiles/lines at wrong positions.
-            // Suppress all tile and line rendering while inside POH.
+            // Suppress all tile and line rendering while in an instance.
             // drawTransportInfo is preserved — it has its own POH-aware display logic.
-            LocalPoint playerLocalPoint = client.getLocalPlayer().getLocalLocation();
-            int playerPackedPoint = WorldPointUtil.fromLocalInstance(client, playerLocalPoint);
-            int playerX = WorldPointUtil.unpackWorldX(playerPackedPoint);
-            int playerY = WorldPointUtil.unpackWorldY(playerPackedPoint);
-            boolean playerInsidePoh = ShortestPathPlugin.isInsidePoh(playerX, playerY);
+            boolean playerInInstance = client.getTopLevelWorldView().isInstance();
 
             if (TileStyle.LINES.equals(plugin.pathStyle)) {
                 for (int i = 1; i < path.size(); i++) {
-                    if (!playerInsidePoh) {
-                        int pathX = WorldPointUtil.unpackWorldX(path.get(i));
-                        int pathY = WorldPointUtil.unpackWorldY(path.get(i));
-                        if (!ShortestPathPlugin.isInsidePoh(pathX, pathY)) {
-                            drawLine(graphics, path.get(i - 1), path.get(i), color, 1 + counter);
-                        }
+                    if (!playerInInstance) {
+                        drawLine(graphics, path.get(i - 1), path.get(i), color, 1 + counter);
                     }
                     counter++;
                     drawTransportInfo(graphics, path.get(i - 1), path.get(i), path, i - 1);
@@ -175,17 +167,13 @@ public class PathTileOverlay extends Overlay {
             } else {
                 boolean showTiles = TileStyle.TILES.equals(plugin.pathStyle);
                 for (int i = 0; i < path.size(); i++) {
-                    if (!playerInsidePoh) {
-                        int pathX = WorldPointUtil.unpackWorldX(path.get(i));
-                        int pathY = WorldPointUtil.unpackWorldY(path.get(i));
-                        if (!ShortestPathPlugin.isInsidePoh(pathX, pathY)) {
-                            drawTile(graphics, path.get(i), color, counter, showTiles);
-                        }
+                    if (!playerInInstance) {
+                        drawTile(graphics, path.get(i), color, counter, showTiles);
                     }
                     counter++;
                     drawTransportInfo(graphics, path.get(i), (i + 1 == path.size()) ? WorldPointUtil.UNDEFINED : path.get(i + 1), path, i);
                 }
-                if (!playerInsidePoh) {
+                if (!playerInInstance) {
                     for (int target : plugin.getPathfinder().getTargets()) {
                         if (path.size() > 0 && target != path.get(path.size() - 1)) {
                             drawTile(graphics, target, colorCalculating, -1, showTiles);

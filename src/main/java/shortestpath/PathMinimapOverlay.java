@@ -41,14 +41,10 @@ public class PathMinimapOverlay extends Overlay {
         }
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
-        // When the player is physically inside the POH instance, toLocalInstance maps
-        // overworld path coordinates into the scene wherever they coincide with POH room
+        // When the player is in an instanced area (e.g. POH), toLocalInstance maps
+        // overworld path coordinates into the scene wherever they coincide with instance
         // template regions, producing scattered dots at wrong positions on the minimap.
-        LocalPoint playerLocalPoint = client.getLocalPlayer().getLocalLocation();
-        int playerPackedPoint = WorldPointUtil.fromLocalInstance(client, playerLocalPoint);
-        int playerX = WorldPointUtil.unpackWorldX(playerPackedPoint);
-        int playerY = WorldPointUtil.unpackWorldY(playerPackedPoint);
-        if (ShortestPathPlugin.isInsidePoh(playerX, playerY)) {
+        if (client.getTopLevelWorldView().isInstance()) {
             return null;
         }
 
